@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import apiClient from "../api/apiClient";
 import ProductCard from "../components/ProductCard";
+import { productService } from "../services/productService";
+import { cartService } from "../services/cartService";
 
 function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -13,8 +14,9 @@ function ProductsPage() {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const response = await apiClient.get("/Categories");
-        setCategories(response.data);
+        const categoryList = await productService.getCategories();
+
+        setCategories(categoryList);
       } catch (error) {
         console.error("Could not load categories:", error);
       }
@@ -24,29 +26,28 @@ function ProductsPage() {
   }, []);
 
   useEffect(() => {
-    async function loadProducts(category) {
+    async function loadProducts() {
       try {
         setLoading(true);
         setError("");
 
-        const url = category
-          ? `/Products?category=${encodeURIComponent(category)}`
-          : "/Products";
+        const productList = await productService.getAll(
+          selectedCategory
+        );
 
-        const response = await apiClient.get(url);
-
-        setProducts(response.data);
+        setProducts(productList);
       } catch (error) {
         console.error(error);
+
         setError(
-          "Could not load products. Ensure the .NET API is running."
+          "Could not load products. Ensure the API Gateway is running."
         );
       } finally {
         setLoading(false);
       }
     }
 
-    loadProducts(selectedCategory);
+    loadProducts();
   }, [selectedCategory]);
 
   async function handleAddToCart(product) {
@@ -58,10 +59,7 @@ function ProductsPage() {
     }
 
     try {
-      await apiClient.post("/Cart/items", {
-        productId: product.id,
-        quantity: 1
-      });
+      await cartService.addItem(product.id, 1);
 
       setMessage(`${product.name} was added to your cart.`);
     } catch (error) {
@@ -80,23 +78,31 @@ function ProductsPage() {
       <div className="page-title-row">
         <div>
           <h1>Products</h1>
+
           <p className="page-subtitle">
             Browse our available products.
           </p>
         </div>
 
         <div className="filter-box">
-          <label htmlFor="category">Filter by category</label>
+          <label htmlFor="category">
+            Filter by category
+          </label>
 
           <select
             id="category"
             value={selectedCategory}
-            onChange={(event) => setSelectedCategory(event.target.value)}
+            onChange={(event) =>
+              setSelectedCategory(event.target.value)
+            }
           >
             <option value="">All Categories</option>
 
             {categories.map((category) => (
-              <option key={category.id} value={category.name}>
+              <option
+                key={category.id}
+                value={category.name}
+              >
                 {category.name}
               </option>
             ))}

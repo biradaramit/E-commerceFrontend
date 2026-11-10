@@ -1,0 +1,49 @@
+# Azure DevOps pipeline: build the React + Vite frontend and deploy it
+# to Azure Static Web Apps (ecommerce-frontend-amit).
+#
+# The deployment token is read from the secret variable
+# AZURE_STATIC_WEB_APPS_API_TOKEN in the variable group
+# ECommerce-Frontend-Secrets. It is never written in this file.
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr: none
+
+variables:
+  - group: ECommerce-Frontend-Secrets
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  # Vite 8 requires Node ^20.19.0 || >=22.12.0.
+  - task: NodeTool@0
+    displayName: Install Node.js 22
+    inputs:
+      versionSpec: '22.x'
+
+  # The lockfile is committed, so npm ci gives a reproducible install.
+  - script: npm ci
+    displayName: Install dependencies
+    workingDirectory: $(Build.SourcesDirectory)
+
+  # Uses the existing "build" script: vite build.
+  # Reads .env.production for VITE_API_BASE_URL and writes dist/.
+  - script: npm run build
+    displayName: Build frontend
+    workingDirectory: $(Build.SourcesDirectory)
+
+  # Deploy the prebuilt dist/ folder. skip_app_build avoids a second
+  # build by Oryx. dist/staticwebapp.config.json (copied from public/)
+  # provides the SPA route fallback.
+  - task: AzureStaticWebApp@0
+    displayName: Deploy to Azure Static Web Apps
+    inputs:
+      workingDirectory: $(Build.SourcesDirectory)
+      app_location: '/dist'
+      output_location: ''
+      skip_app_build: true
+      azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
