@@ -9,13 +9,10 @@ import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import OrderDetailsPage from "./pages/OrderDetailsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import AddProductPage from "./pages/AddProductPage";
 
 function App() {
-  const fn = () => {
-    localStorage.setItem("name","Kamalesh");
-    console.log(localStorage.getItem("name"));
-  }
-  fn();
   return (
     <>
       <Header />
@@ -64,6 +61,15 @@ function App() {
     <ProtectedRoute>
       <OrderDetailsPage />
     </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/products/new"
+  element={
+    <AdminRoute>
+      <AddProductPage />
+    </AdminRoute>
   }
 />
         </Routes>

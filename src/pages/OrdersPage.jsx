@@ -6,38 +6,35 @@ function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage] = useState(
+    () => sessionStorage.getItem("orderSuccessMessage") || ""
+  );
 
   useEffect(() => {
-    const message = sessionStorage.getItem("orderSuccessMessage");
+    sessionStorage.removeItem("orderSuccessMessage");
 
-    if (message) {
-      setSuccessMessage(message);
-      sessionStorage.removeItem("orderSuccessMessage");
+    async function loadOrders() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await apiClient.get("/Orders/my-orders");
+
+        setOrders(response.data);
+      } catch (error) {
+        console.error(error);
+
+        setError(
+          error.response?.data?.message ||
+            "Could not load your order history."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadOrders();
   }, []);
-
-  async function loadOrders() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await apiClient.get("/Orders/my-orders");
-
-      setOrders(response.data);
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error.response?.data?.message ||
-          "Could not load your order history."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function formatDate(dateValue) {
     if (!dateValue) {

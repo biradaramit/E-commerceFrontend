@@ -1,10 +1,5 @@
-import { createContext, useContext, useState } from "react";
-
-const AuthContext = createContext(null);
-
-export function useAuth() {
-  return useContext(AuthContext);
-}
+import { useState } from "react";
+import { AuthContext } from "./authContextObject";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -46,11 +41,15 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  // UI-only check. The backend must enforce Admin on every write.
+  const isAdmin = Array.isArray(user?.roles) && user.roles.includes("Admin");
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated : Boolean(user),
+        isAdmin,
         login,
         logout
       }}

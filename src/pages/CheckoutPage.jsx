@@ -16,27 +16,27 @@ function CheckoutPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    async function loadCart() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await apiClient.get("/Cart");
+        setCart(response.data);
+      } catch (error) {
+        console.error(error);
+
+        setError(
+          error.response?.data?.message ||
+            "Could not load your cart."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadCart();
   }, []);
-
-  async function loadCart() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await apiClient.get("/Cart");
-      setCart(response.data);
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error.response?.data?.message ||
-          "Could not load your cart."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function handleChange(event) {
     const { name, value } = event.target;

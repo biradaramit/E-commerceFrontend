@@ -10,28 +10,28 @@ function OrderDetailsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    async function loadOrder() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await apiClient.get(`/Orders/${id}`);
+
+        setOrder(response.data);
+      } catch (error) {
+        console.error(error);
+
+        setError(
+          error.response?.data?.message ||
+            "Could not load order details."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadOrder();
   }, [id]);
-
-  async function loadOrder() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await apiClient.get(`/Orders/${id}`);
-
-      setOrder(response.data);
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error.response?.data?.message ||
-          "Could not load order details."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function formatDate(dateValue) {
     if (!dateValue) {

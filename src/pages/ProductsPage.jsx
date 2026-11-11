@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { productService } from "../services/productService";
 import { cartService } from "../services/cartService";
@@ -9,7 +10,20 @@ function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Success message passed from Add Product. Read it once on mount.
+  const [message, setMessage] = useState(
+    () => location.state?.message || ""
+  );
+
+  // Clear the router state so a page refresh does not repeat the message.
+  useEffect(() => {
+    if (location.state?.message) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
     async function loadCategories() {

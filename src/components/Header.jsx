@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 function Header() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   function handleLogout() {
     logout();
@@ -24,6 +24,10 @@ function Header() {
             <>
               <Link to="/cart">Cart</Link>
               <Link to="/orders">My Orders</Link>
+
+              {isAdmin && (
+                <Link to="/admin/products/new">Add Product</Link>
+              )}
 
               <span className="welcome-text">
                 Hi, {user.firstName || user.email}
